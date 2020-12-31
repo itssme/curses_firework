@@ -2,7 +2,8 @@
 #include <unistd.h>
 #include <stdlib.h>
 
-#define PARTICLES_PER_ROCKET 64
+#define ROCKETS 4
+#define PARTICLES_PER_ROCKET 32
 
 typedef enum Color {
     BLACK = 0,
@@ -45,8 +46,8 @@ void tick_particle_pos(Particle* particle) {
 
 void init_particle_random(Particle* particle) {
     particle->ttl = (rand() % 10) + 10;
-    particle->h_speed = ((rand() % 1000) - 500.0f) / 250;
-    particle->w_speed = ((rand() % 1000) - 500.0f) / 250;
+    particle->h_speed = ((rand() % 1000) - 500.0f) / 400;
+    particle->w_speed = ((rand() % 1000) - 500.0f) / 200;
     particle->color = (rand() % 5);
 }
 
@@ -64,7 +65,7 @@ Rocket* create_rocket() {
     rocket->main.w_speed = ((rand() % 100) - 50.0f) / 100;
     rocket->main.h_pos = LINES;
     rocket->main.w_pos = (COLS / 2) + ((rand() % (COLS / 2)) - (COLS / 4));
-    rocket->main.ttl = 25;
+    rocket->main.ttl = (rand() % (LINES / 2)) + (LINES / 3);
     return rocket;
 }
 
@@ -115,17 +116,26 @@ int main() {
     init_pair(BLUE, COLOR_BLUE, COLOR_BLUE);
     init_pair(CYAN, COLOR_CYAN, COLOR_CYAN);
 
-    Rocket* rocket = create_rocket();
+    Rocket* rockets[ROCKETS];
+    for (int i = 0; i < ROCKETS; ++i) {
+        rockets[i] = create_rocket();
+        rockets[i]->done = true;
+    }
 
     for (int i = 0; i < 1000; ++i) {
-        tick_and_draw_rocket(window, rocket);
+        for (int j = 0; j < ROCKETS; ++j) {
+            if (! rockets[j]->done) {
+                tick_and_draw_rocket(window, rockets[j]);
+            } else {
+                if (rand() % 100 >= 96) {
+                    //free(&rockets[j]);
+                    rockets[j] = create_rocket();
+                }
+            }
+        }
         wrefresh(window);
         usleep(50000);
         werase(window);
-        if (rocket->done) {
-            free(rocket);
-            rocket = create_rocket();
-        }
     }
 
     endwin();
