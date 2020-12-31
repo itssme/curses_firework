@@ -128,7 +128,7 @@ int main() {
                 tick_and_draw_rocket(window, rockets[j]);
             } else {
                 if (rand() % 100 >= 96) {
-                    //free(&rockets[j]);
+                    free(rockets[j]);
                     rockets[j] = create_rocket();
                 }
             }
